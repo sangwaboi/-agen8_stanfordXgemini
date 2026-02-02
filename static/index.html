@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Workflow Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Mermaid.js for Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .node-success { border-color: #10b981; }
+        .node-error { border-color: #ef4444; }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-10 border-b border-slate-800 pb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Gemini Workflow Studio</h1>
+            </div>
+            <div class="flex gap-4 text-sm text-slate-400">
+                <div class="flex items-center gap-1"><div class="w-2 h-2 bg-green-500 rounded-full"></div>Composio Active</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 bg-blue-500 rounded-full"></div>Gemini 2.0 Flash</div>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Input & Controls -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Input Panel -->
+                <div class="glass-panel rounded-xl p-6 shadow-xl">
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Describe your workflow</label>
+                    <textarea id="user-prompt" class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="E.g., Every Monday, scrape Hacker News, summarize with AI, and Slack the results to #general..."></textarea>
+                    
+                    <div class="mt-4 flex gap-2">
+                        <select id="example-select" class="bg-slate-800 text-xs text-slate-400 border border-slate-700 rounded px-2 py-1 flex-1" onchange="loadExample(this.value)">
+                            <option value="">Load an example...</option>
+                            <option value="Scrape Hacker News top stories, summarize them, and email me">HN to Email</option>
+                            <option value="Check my latest Gmail messages, summarize urgent ones, send to Slack">Gmail to Slack</option>
+                            <option value="Fetch stock data for AAPL, if price > 150 send alert">Stock Alert</option>
+                        </select>
+                    </div>
+
+                    <button onclick="generateWorkflow()" id="generate-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        Generate Plan
+                    </button>
+                </div>
+
+                <!-- Execution Controls -->
+                <div class="glass-panel rounded-xl p-6 shadow-xl opacity-50 pointer-events-none transition" id="execution-panel">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-slate-200">Execution</h3>
+                        <span id="status-badge" class="px-2 py-1 rounded text-xs bg-slate-800 text-slate-400">Ready</span>
+                    </div>
+                    <button onclick="executeWorkflow()" id="execute-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg transition shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Run Workflow
+                    </button>
+                    <button onclick="resetUI()" class="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium py-2 rounded-lg transition">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Visualization & Results -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Visualization Area -->
+                <div class="glass-panel rounded-xl p-6 min-h-[300px] relative overflow-hidden flex flex-col">
+                    <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Workflow Graph</h3>
+                    <div id="workflow-viz" class="flex-1 bg-slate-900/30 rounded-lg flex items-center justify-center border border-slate-800">
+                        <p class="text-slate-600 italic">Generated workflow will appear here...</p>
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="glass-panel rounded-xl p-6 min-h-[200px]">
+                    <h3 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-4">Live Execution Trace</h3>
+                    <div id="logs-container" class="space-y-2 max-h-[300px] overflow-y-auto font-mono text-xs">
+                        <!-- Logs will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+
+        function loadExample(text) {
+            if(text) document.getElementById('user-prompt').value = text;
+        }
+
+        function showLoading(msg) {
+            document.getElementById('logs-container').innerHTML += `<div class="text-blue-400">> ${msg}</div>`;
+        }
+
+        async function generateWorkflow() {
+            const prompt = document.getElementById('user-prompt').value;
+            if(!prompt) return alert("Please enter a prompt");
+            
+            showLoading("Analyzing request with Gemini 2.0 Flash...");
+            
+            // Mock simulation for Phase 1 demo (Backend not fully wired yet)
+            setTimeout(() => {
+                const mockGraph = `
+                graph TD
+                    A[Start] --> B(Web Scraper)
+                    B --> C(AI Processor)
+                    C --> D(Email Sender)
+                    D --> E[End]
+                `;
+                renderWorkflow(mockGraph);
+                document.getElementById('execution-panel').classList.remove('opacity-50', 'pointer-events-none');
+                showLoading("Workflow plan generated successfully.");
+            }, 1500);
+        }
+
+        async function executeWorkflow() {
+            const btn = document.getElementById('execute-btn');
+            btn.disabled = true;
+            btn.innerHTML = 'Executing...';
+            
+            showLoading("Initializing execution engine...");
+            
+            // Mock execution for Phase 1
+            const steps = [
+                { msg: "Running Web Scraper (Firecrawl)...", delay: 800 },
+                { msg: "Scraping complete. Found 5 items.", delay: 1500 },
+                { msg: "Running AI Processor (Gemini)...", delay: 2000 },
+                { msg: "Summarization complete.", delay: 1000 },
+                { msg: "Sending Email via Composio...", delay: 1200 },
+                { msg: "Workflow completed successfully!", delay: 500, color: "text-emerald-400" }
+            ];
+
+            let totalDelay = 0;
+            steps.forEach(step => {
+                totalDelay += step.delay;
+                setTimeout(() => {
+                    document.getElementById('logs-container').innerHTML += `<div class="${step.color || 'text-slate-300'}">> ${step.msg}</div>`;
+                    document.getElementById('logs-container').scrollTop = document.getElementById('logs-container').scrollHeight;
+                }, totalDelay);
+            });
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Run Workflow';
+            }, totalDelay + 500);
+        }
+
+        function renderWorkflow(graphDefinition) {
+            const element = document.getElementById('workflow-viz');
+            element.innerHTML = '<div class="mermaid">' + graphDefinition + '</div>';
+            mermaid.init(undefined, element.querySelector('.mermaid'));
+        }
+        
+        function resetUI() {
+             document.getElementById('user-prompt').value = '';
+             document.getElementById('workflow-viz').innerHTML = '<p class="text-slate-600 italic">Generated workflow will appear here...</p>';
+             document.getElementById('logs-container').innerHTML = '';
+             document.getElementById('execution-panel').classList.add('opacity-50', 'pointer-events-none');
+        }
+    </script>
+</body>
+</html>

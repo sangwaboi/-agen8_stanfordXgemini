@@ -1,0 +1,5 @@
+{
+  "name": "agen8",
+  "description": "Transform natural language descriptions into executable agentic workflows using Google Gemini. Build complex automations without code.",
+  "requestFramePermissions": []
+}
